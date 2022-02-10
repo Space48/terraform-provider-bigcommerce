@@ -2,6 +2,7 @@ package bigcommerce
 
 import (
 	"context"
+	"net/http"
 	"strconv"
 
 	"github.com/ashsmith/bigcommerce-api-go"
@@ -23,21 +24,13 @@ func resourceWebhook() *schema.Resource {
 			},
 			"client_id": &schema.Schema{
 				Type:      schema.TypeString,
-				Computed:  true,
 				Sensitive: true,
+				Required:  true,
 			},
-			"store_hash": &schema.Schema{
+			"access_token": &schema.Schema{
 				Type:      schema.TypeString,
-				Computed:  true,
 				Sensitive: true,
-			},
-			"created_at": &schema.Schema{
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"updated_at": &schema.Schema{
-				Type:     schema.TypeInt,
-				Computed: true,
+				Required:  true,
 			},
 			"scope": &schema.Schema{
 				Type:     schema.TypeString,
@@ -72,7 +65,11 @@ func resourceWebhook() *schema.Resource {
 }
 
 func resourceWebhookCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	client := m.(*bigcommerce.Client)
+	storeHash := m.(string)
+	clientId := d.Get("client_id").(string)
+	accessToken := d.Get("access_token").(string)
+
+	client := createBigCommerceClient(storeHash, clientId, accessToken)
 	var diags diag.Diagnostics
 
 	scope := d.Get("scope").(string)
@@ -98,7 +95,11 @@ func resourceWebhookCreate(ctx context.Context, d *schema.ResourceData, m interf
 }
 
 func resourceWebhookRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	client := m.(*bigcommerce.Client)
+	storeHash := m.(string)
+	clientId := d.Get("client_id").(string)
+	accessToken := d.Get("access_token").(string)
+
+	client := createBigCommerceClient(storeHash, clientId, accessToken)
 	var diags diag.Diagnostics
 
 	webhookID, _ := strconv.ParseInt(d.Id(), 10, 64)
@@ -117,7 +118,11 @@ func resourceWebhookRead(ctx context.Context, d *schema.ResourceData, m interfac
 }
 
 func resourceWebhookUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	client := m.(*bigcommerce.Client)
+	storeHash := m.(string)
+	clientId := d.Get("client_id").(string)
+	accessToken := d.Get("access_token").(string)
+
+	client := createBigCommerceClient(storeHash, clientId, accessToken)
 
 	webhookID, _ := strconv.ParseInt(d.Id(), 10, 64)
 
@@ -140,7 +145,11 @@ func resourceWebhookUpdate(ctx context.Context, d *schema.ResourceData, m interf
 }
 
 func resourceWebhookDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	client := m.(*bigcommerce.Client)
+	storeHash := m.(string)
+	clientId := d.Get("client_id").(string)
+	accessToken := d.Get("access_token").(string)
+
+	client := createBigCommerceClient(storeHash, clientId, accessToken)
 	var diags diag.Diagnostics
 
 	webhookID, _ := strconv.ParseInt(d.Id(), 10, 64)
@@ -155,6 +164,17 @@ func resourceWebhookDelete(ctx context.Context, d *schema.ResourceData, m interf
 	d.SetId("")
 
 	return diags
+}
+
+func createBigCommerceClient(storeHash string, clientID string, accessToken string) *bigcommerce.Client {
+	app := bigcommerce.App{
+		ClientID:    clientID,
+		StoreHash:   storeHash,
+		AccessToken: accessToken,
+	}
+
+	httpClient := http.Client{}
+	return app.NewClient(httpClient)
 }
 
 func formatHeaders(d *schema.ResourceData) map[string]string {
