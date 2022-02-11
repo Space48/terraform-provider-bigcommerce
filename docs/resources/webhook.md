@@ -15,6 +15,8 @@ Provides a BigCommerce Webhook resource.
 ```terraform
 resource "bigcommerce_webhook" "example" {
   scope       = "store/customer/*"
+  access_token = "123123123"
+  client_id = "321321321"
   destination = "https://foo.bar/webhook"
   is_active   = true
 
@@ -35,6 +37,8 @@ resource "bigcommerce_webhook" "example" {
 
 ### Required
 
+- **access_token** (String, Sensitive)
+- **client_id** (String, Sensitive)
 - **destination** (String)
 - **is_active** (Boolean)
 - **scope** (String)
@@ -45,11 +49,7 @@ resource "bigcommerce_webhook" "example" {
 
 ### Read-only
 
-- **client_id** (String, Sensitive)
-- **created_at** (Number)
 - **id** (String) The ID of this resource.
-- **store_hash** (String, Sensitive)
-- **updated_at** (Number)
 
 <a id="nestedblock--header"></a>
 ### Nested Schema for `header`

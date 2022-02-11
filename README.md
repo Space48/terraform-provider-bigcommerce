@@ -2,7 +2,7 @@
 
 Terraform Provider for BigCommerce
 
-- [Bigcommerce Provider Documentation on Terraform](https://registry.terraform.io/providers/ashsmith/bigcommerce/latest)
+- [Bigcommerce Provider Documentation on Terraform](https://registry.terraform.io/providers/space48/bigcommerce/latest)
 
 ## Resources:
 
@@ -30,7 +30,7 @@ go generate
 terraform {
   required_providers {
     bigcommerce = {
-      source = "ashsmith/bigcommerce"
+      source = "space48/bigcommerce"
       version = "0.1.0"
     }
   }
@@ -38,12 +38,12 @@ terraform {
 
 provider "bigcommerce" {
   store_hash   = "your-hash"
-  client_id    = "your-client-id"
-  access_token = "your-access-token"
 }
 
 resource "bigcommerce_webhook" "example" {
   scope       = "store/customer/*"
+  client_id    = "your-client-id"
+  access_token = "your-access-token"
   destination = "https://foo.bar/webhook"
   is_active   = true
 
