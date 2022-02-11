@@ -11,7 +11,7 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"store_hash": &schema.Schema{
+			"store_hash": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("BIGCOMMERCE_STORE_HASH", nil),

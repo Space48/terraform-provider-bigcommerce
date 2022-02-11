@@ -18,33 +18,33 @@ func resourceWebhook() *schema.Resource {
 		UpdateContext: resourceWebhookUpdate,
 		DeleteContext: resourceWebhookDelete,
 		Schema: map[string]*schema.Schema{
-			"id": &schema.Schema{
+			"id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"client_id": &schema.Schema{
+			"client_id": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Required:  true,
 			},
-			"access_token": &schema.Schema{
+			"access_token": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Required:  true,
 			},
-			"scope": &schema.Schema{
+			"scope": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"destination": &schema.Schema{
+			"destination": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"is_active": &schema.Schema{
+			"is_active": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
-			"header": &schema.Schema{
+			"header": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -123,25 +123,18 @@ func resourceWebhookUpdate(ctx context.Context, d *schema.ResourceData, m interf
 	webhookID, _ := strconv.ParseInt(d.Id(), 10, 64)
 	storeHash := m.(string)
 	if d.HasChange("client_id") || d.HasChange("access_token") {
-		prevClient := createBigCommerceClient(storeHash, prevClientId.(string), prevAccessToken.(string))
-		currentClient := createBigCommerceClient(storeHash, currentClientId.(string), currentAccessToken.(string))
-		err := prevClient.Webhooks.Delete(webhookID)
-		if err != nil {
-			return diag.FromErr(err)
+		d.Set("access_token", prevAccessToken)
+		d.Set("client_id", prevClientId)
+		deleteDiag := resourceWebhookDelete(ctx, d, m)
+		if deleteDiag.HasError() {
+			return deleteDiag
 		}
-		webhook := bigcommerce.Webhook{
-			Scope:       d.Get("scope").(string),
-			Destination: d.Get("destination").(string),
-			IsActive:    d.Get("is_active").(bool),
+		d.Set("access_token", currentAccessToken)
+		d.Set("client_id", currentClientId)
+		createDiag := resourceWebhookCreate(ctx, d, m)
+		if createDiag.HasError() {
+			return createDiag
 		}
-
-		webhook.Headers = formatHeaders(d)
-		result, err := currentClient.Webhooks.Create(webhook)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		d.SetId(strconv.Itoa(int(result.ID)))
 	} else {
 		if d.HasChange("scope") || d.HasChange("destination") || d.HasChange("is_active") || d.HasChange("header") {
 			clientId := d.Get("client_id").(string)

@@ -14,33 +14,33 @@ func dataSourceWebhook() *schema.Resource {
 		Description: "Provides information about a webhook ",
 		ReadContext: dataSourceWebhookRead,
 		Schema: map[string]*schema.Schema{
-			"id": &schema.Schema{
+			"id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"client_id": &schema.Schema{
+			"client_id": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Required:  true,
 			},
-			"access_token": &schema.Schema{
+			"access_token": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Required:  true,
 			},
-			"scope": &schema.Schema{
+			"scope": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"destination": &schema.Schema{
+			"destination": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"is_active": &schema.Schema{
+			"is_active": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"header": &schema.Schema{
+			"header": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
