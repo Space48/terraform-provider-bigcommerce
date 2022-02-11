@@ -2,7 +2,6 @@ package bigcommerce
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/ashsmith/bigcommerce-api-go"
@@ -15,41 +14,33 @@ func dataSourceWebhook() *schema.Resource {
 		Description: "Provides information about a webhook ",
 		ReadContext: dataSourceWebhookRead,
 		Schema: map[string]*schema.Schema{
-			"id": &schema.Schema{
+			"id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"client_id": &schema.Schema{
+			"client_id": {
 				Type:      schema.TypeString,
-				Computed:  true,
 				Sensitive: true,
+				Required:  true,
 			},
-			"store_hash": &schema.Schema{
+			"access_token": {
 				Type:      schema.TypeString,
-				Computed:  true,
 				Sensitive: true,
+				Required:  true,
 			},
-			"created_at": &schema.Schema{
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"updated_at": &schema.Schema{
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"scope": &schema.Schema{
+			"scope": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"destination": &schema.Schema{
+			"destination": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"is_active": &schema.Schema{
+			"is_active": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"header": &schema.Schema{
+			"header": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -72,14 +63,15 @@ func dataSourceWebhook() *schema.Resource {
 func dataSourceWebhookRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
+	storeHash := m.(string)
+	clientId := d.Get("client_id").(string)
+	accessToken := d.Get("access_token").(string)
 
-	c := m.(*bigcommerce.Client)
+	client := createBigCommerceClient(storeHash, clientId, accessToken)
 	hookID := d.Get("id").(string)
 
-	fmt.Println(c)
-
 	webhookID, _ := strconv.ParseInt(hookID, 10, 64)
-	webhook, whErr := c.Webhooks.Get(webhookID)
+	webhook, whErr := client.Webhooks.Get(webhookID)
 
 	if whErr != nil {
 		return diag.FromErr(whErr)
@@ -97,18 +89,6 @@ func dataSourceWebhookRead(ctx context.Context, d *schema.ResourceData, m interf
 
 func setWebhookData(webhook bigcommerce.Webhook, d *schema.ResourceData) diag.Diagnostics {
 	if err := d.Set("id", strconv.FormatInt(webhook.ID, 10)); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("client_id", webhook.ClientID); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("store_hash", webhook.StoreHash); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("created_at", int(webhook.CreatedAt)); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("updated_at", int(webhook.UpdatedAt)); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("scope", webhook.Scope); err != nil {

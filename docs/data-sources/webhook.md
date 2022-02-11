@@ -23,18 +23,16 @@ data "bigcommerce_webhook" "example" {
 
 ### Required
 
+- **access_token** (String, Sensitive)
+- **client_id** (String, Sensitive)
 - **id** (String) The ID of this resource.
 
 ### Read-only
 
-- **client_id** (String, Sensitive)
-- **created_at** (Number)
 - **destination** (String)
 - **header** (Block Set) (see [below for nested schema](#nestedblock--header))
 - **is_active** (Boolean)
 - **scope** (String)
-- **store_hash** (String, Sensitive)
-- **updated_at** (Number)
 
 <a id="nestedblock--header"></a>
 ### Nested Schema for `header`

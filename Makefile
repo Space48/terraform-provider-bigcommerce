@@ -1,10 +1,13 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
-HOSTNAME=ashsmith.io
-NAMESPACE=test
+HOSTNAME=space48.com
+NAMESPACE=local
 NAME=bigcommerce
 BINARY=terraform-provider-${NAME}
-VERSION=0.2
+VERSION=0.1
 OS_ARCH=darwin_amd64
+
+include .env
+export
 
 default: install
 
@@ -34,4 +37,4 @@ test:
 	echo $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc:
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
+	TF_ACC=1 go test -v ./...
