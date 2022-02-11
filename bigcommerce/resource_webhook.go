@@ -118,27 +118,49 @@ func resourceWebhookRead(ctx context.Context, d *schema.ResourceData, m interfac
 }
 
 func resourceWebhookUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	storeHash := m.(string)
-	clientId := d.Get("client_id").(string)
-	accessToken := d.Get("access_token").(string)
-
-	client := createBigCommerceClient(storeHash, clientId, accessToken)
-
+	prevClientId, currentClientId := d.GetChange("client_id")
+	prevAccessToken, currentAccessToken := d.GetChange("access_token")
 	webhookID, _ := strconv.ParseInt(d.Id(), 10, 64)
-
-	if d.HasChange("scope") || d.HasChange("destination") || d.HasChange("is_active") || d.HasChange("header") {
+	storeHash := m.(string)
+	if d.HasChange("client_id") || d.HasChange("access_token") {
+		prevClient := createBigCommerceClient(storeHash, prevClientId.(string), prevAccessToken.(string))
+		currentClient := createBigCommerceClient(storeHash, currentClientId.(string), currentAccessToken.(string))
+		err := prevClient.Webhooks.Delete(webhookID)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 		webhook := bigcommerce.Webhook{
-			ID:          webhookID,
 			Scope:       d.Get("scope").(string),
 			Destination: d.Get("destination").(string),
 			IsActive:    d.Get("is_active").(bool),
 		}
 
 		webhook.Headers = formatHeaders(d)
-
-		_, err := client.Webhooks.Update(webhook)
+		result, err := currentClient.Webhooks.Create(webhook)
 		if err != nil {
 			return diag.FromErr(err)
+		}
+
+		d.SetId(strconv.Itoa(int(result.ID)))
+	} else {
+		if d.HasChange("scope") || d.HasChange("destination") || d.HasChange("is_active") || d.HasChange("header") {
+			clientId := d.Get("client_id").(string)
+			accessToken := d.Get("access_token").(string)
+
+			client := createBigCommerceClient(storeHash, clientId, accessToken)
+			webhook := bigcommerce.Webhook{
+				ID:          webhookID,
+				Scope:       d.Get("scope").(string),
+				Destination: d.Get("destination").(string),
+				IsActive:    d.Get("is_active").(bool),
+			}
+
+			webhook.Headers = formatHeaders(d)
+
+			_, err := client.Webhooks.Update(webhook)
+			if err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	}
 	return resourceWebhookRead(ctx, d, m)
